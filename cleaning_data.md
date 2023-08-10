@@ -18,7 +18,7 @@ No column was returned which means that the 'SKU' column passes as a primary key
 
 STEP 2
 
-I ran the query in STEP 1 for other tables and the was able to get the primary KEY as below
+I ran the query in STEP 1 for other tables and  was able to get the primary KEY as below
 Primary KEY for products is sku
 Primary KEY for sales_by_sku is productsku
 Primary KEY for sales_report is productsku
@@ -42,20 +42,18 @@ Search for Primary Key in the 'analytics' and 'all_sessions' table and i figured
 
 Queries:
 Below, provide the SQL queries you used to clean your data.
-STEP ONE: Followed the hints to divide The unit cost in the data needs to be divided by 1,000,000
 
-
------to check if column is empty 
+-----to check if column is empty ----------------------------------------------
 WITH analysis_rows_number AS (
 SELECT 
 	COUNT(fullVisitorId) AS fullVisitorId,
 FROM all_sessions
 
 
-----SALES_REPORT TABLE
-i Removed the sales_report table because it is a redundant dataa
+----SALES_REPORT TABLE-----------------------------------------------------------
+i did not make use of this table because it is a redundant table. All its data can be found in other tables
 
----ANALYTICS TABLE
+---ANALYTICS TABLE------------------------------------------------------------------
 CREATE TABLE cleaned_analytics AS (
 	SELECT DISTINCT 
 		visitid,
@@ -80,15 +78,18 @@ CREATE TABLE cleaned_analytics AS (
 		unit_price/1000000 as unit_price
 	FROM analytics
 )
----ALL_SESSION TABLE
+---ALL_SESSION TABLE----------------------------------------------------------------
 CREATE TABLE cleaned_all_sessions AS(
 SELECT 
 	DISTINCT(fullVisitorId) AS fullVisitorId,
 	channelGrouping AS channelGrouping,
 	time AS time,
 	country AS country,
-	city  AS city,
-	totalTransactionRevenue AS totalTransactionRevenue,
+	CASE
+		WHEN city LIKE 'not%' or city LIKE '_not%' THEN country
+		ELSE city	
+	END AS city, 
+	totalTransactionRevenue/1000000 AS totalTransactionRevenue ,
 	transactions AS transactions, 
 	--timeOnSite AS timeOnSite,--available in analytics table
 	--pageviews AS pageviews, --available in analytics table
@@ -98,7 +99,7 @@ SELECT
 	type AS type,
 	--productRefundAmount AS productRefundAmount, -- count is zero
 	productQuantity AS productQuantity,
-	productPrice AS productPrice,
+	productPrice/1000000 AS productPrice,
 	--productRevenue AS productRevenue, -- can be calculated by productprice * productQuantity
 	productSKU AS productSKU,
 	v2ProductName AS v2ProductName,
@@ -115,10 +116,10 @@ SELECT
 	eCommerceAction_type AS eCommerceAction_type,
 	eCommerceAction_step AS eCommerceAction_step,
 	eCommerceAction_option AS eCommerceAction_option
-FROM all_sessions
+FROM all_sessions 
 )
 
---PRODUCT TABLE
+--PRODUCT TABLE-------------------------------------------------------------------------------------
 CREATE TABLE cleaned_products AS (
 	SELECT DISTINCT *
 	FROM products
